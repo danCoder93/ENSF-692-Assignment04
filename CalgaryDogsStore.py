@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import math
 
 
 class CalgaryDogStore:
@@ -49,28 +50,42 @@ class CalgaryDogStore:
         """
         print yearly registration for the input breed as a percentage of overall registrations for that year
         """
-        for x in [2021, 2022, 2023]:
-            year_total_data = CalgaryDogStore.data[CalgaryDogStore.data['Year'] == x]
-            breed_total_data = year_total_data[year_total_data['Breed'] == self.breed]
-            print(f'The {self.breed} was {
-                breed_total_data.Total.sum() * 100 / year_total_data.Total.sum() : .6f}% of the top breeds in {x}')
+        perc_yearly_total = (
+                CalgaryDogStore.data[CalgaryDogStore.data['Breed'] == self.breed]
+                .groupby('Year')['Total'].sum()
+                * 100 /
+                CalgaryDogStore.data.groupby('Year')['Total'].sum()
+        )
+
+        [
+            print(f'The {self.breed} was {v 
+            : .6f}% of the top breeds in {i}')
+            for i, v in zip(perc_yearly_total.index, perc_yearly_total.values)
+        ]
 
     def print_total_perc_registration(self):
         """
         print total registrations for the input breed as a percentage of overall registrations in the data
         """
-        all_year_data = CalgaryDogStore.data[CalgaryDogStore.data['Year'].isin(CalgaryDogStore.data['Year'].unique())]
-        breed_all_year_data = all_year_data[all_year_data['Breed'] == self.breed]
         print(
-            f'The {self.breed} was {breed_all_year_data.Total.sum() * 100 / all_year_data.Total.sum() : .6f}% of the top breed across all years.')
+            f'The {self.breed} was {
+            CalgaryDogStore.data[CalgaryDogStore.data['Breed'] == self.breed].Total.sum() * 100 
+            / CalgaryDogStore.data.Total.sum()
+            : .6f}% of the top breed across all years.')
 
     def print_popular_months(self):
         """
-        print months, where the input breed is the top breed registered
+        print months for input breed, where the input breed is top breed registered
         """
-        inter_mod = CalgaryDogStore.data.groupby(['Month', 'Breed'], as_index=False).agg({'Total': 'sum'})
-        inter_mod_max = inter_mod.groupby('Month')['Total'].transform('max')
+
+        months_sum = (CalgaryDogStore.data[CalgaryDogStore.data['Breed'] == self.breed]
+                      .groupby('Month', as_index=False).agg({'Total': 'sum'}))
+        months_sum_max = months_sum['Total'].max()
+        log_10_power : int = int(math.log10(months_sum_max))
+        log_10_multiplier: int = int(months_sum_max/ 10**log_10_power)
+        max_threshold : int = log_10_multiplier * (10**log_10_power)
+
         print(
             f'Most popular month(s) for {self.breed} dogs: {
-            ' '.join(inter_mod[(inter_mod['Total'] == inter_mod_max) & (inter_mod['Breed'] == self.breed)]['Month'].values)
+            ' '.join(months_sum[months_sum['Total'] > max_threshold]['Month'].unique())
             }')
