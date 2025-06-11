@@ -10,35 +10,35 @@
 from CalgaryDogsStore import *
 
 def main():
-
     print("ENSF 692 Dogs of Calgary")
 
     # User input stage
     is_breed_not_found : bool = True
     retry : int = 0
+    dog_breed_input: str = ""
     while is_breed_not_found:
         try :
             # setting up prompt string - include dog names if first attempt else don't
             input_prompt : str = f"Enter a dog breed from the following options{f'\n{CalgaryDogStore.breeds_help}' if retry == 0 else ''}: "
 
             # make the input upper to compare with the dataset
-            dog_breed_input: str =  input(input_prompt).upper()
+            dog_breed_input =  input(input_prompt).upper()
 
             # set retry to not include unique dog list on second attemp
             retry += 1
 
             # check whether breed found in data
-            is_breed_not_found = CalgaryDogStore.is_breed_not_in_data(dog_breed_input)
+            is_breed_not_found = is_breed_not_in_data(dog_breed_input)
 
             # raise error if not found
             if is_breed_not_found:
                 raise KeyError('Dog breed not found in the data. Please try again.')
 
-            # create an object
-            cds : CalgaryDogStore = CalgaryDogStore(dog_breed_input)
-
         except KeyError as e:
             print(e.args[0])
+
+    # create an object
+    cds: CalgaryDogStore = CalgaryDogStore(dog_breed_input)
 
     # Data analysis stage
     #top breed in the year
